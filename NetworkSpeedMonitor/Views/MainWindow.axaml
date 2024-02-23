@@ -1,0 +1,27 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:NetworkSpeedMonitor.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:views="clr-namespace:NetworkSpeedMonitor.Views"
+        mc:Ignorable="d"
+        x:Class="NetworkSpeedMonitor.Views.MainWindow"
+        Icon="/Assets/avalonia-logo.ico"
+        Width="150"
+        Height="100"
+        Background="Transparent"
+        TransparencyLevelHint="Transparent"
+        TransparencyBackgroundFallback="Transparent"
+        SystemDecorations ="None"
+        Topmost="True"
+        Title="NetworkSpeedMonitor">
+  <Window.Styles>
+    <Style Selector="TextBlock.up">
+      <Setter Property="Foreground" Value="Red"></Setter>
+    </Style>
+    <Style Selector="TextBlock.down">
+      <Setter Property="Foreground" Value="Green"></Setter>
+    </Style>
+  </Window.Styles>
+      <views:MainView />
+</Window>
