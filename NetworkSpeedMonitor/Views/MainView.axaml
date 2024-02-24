@@ -14,7 +14,7 @@
 
   <Border Padding="10">
     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="10">
-      <ComboBox ItemsSource="{Binding Networks}">
+      <ComboBox ItemsSource="{Binding Networks}" SelectedIndex="0">
         <ComboBox.ItemTemplate>
           <DataTemplate>
             <TextBlock Text="{Binding Name}" />
