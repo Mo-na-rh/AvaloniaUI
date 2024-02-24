@@ -13,6 +13,6 @@ public partial class MainWindow : Window
         var x = (int)(workingArea?.Width - this.Width) - 40;
         var y = (int)(workingArea?.Height - this.Height) - 60;
 
-        Position = new Avalonia.PixelPoint(x, y);
+        //Position = new Avalonia.PixelPoint(x, y);
     }
 }
