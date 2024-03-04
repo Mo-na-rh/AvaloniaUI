@@ -4,6 +4,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:NetworkSpeedMonitor.ViewModels"
              mc:Ignorable="d" 
+             Width="1000"
+             Height="500"
              x:Class="NetworkSpeedMonitor.Views.MainView"
              x:DataType="vm:MainViewModel">
   <Design.DataContext>
@@ -11,18 +13,28 @@
          to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
     <vm:MainViewModel />
   </Design.DataContext>
+  <Grid>
+    <Border Padding="10">
+      <DataGrid Name="dataGrid" ItemsSource="{Binding Appointments}"
+                IsReadOnly="True"
+                CanUserReorderColumns="False"
+                CanUserResizeColumns="True"
+                CanUserSortColumns="False"
+                ClipboardCopyMode ="ExcludeHeader"
+                
+                GridLinesVisibility="None"
 
-  <Border Padding="10">
-    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="10">
-      <ComboBox ItemsSource="{Binding Networks}" SelectedIndex="0">
-        <ComboBox.ItemTemplate>
-          <DataTemplate>
-            <TextBlock Text="{Binding Name}" />
-          </DataTemplate>
-        </ComboBox.ItemTemplate>
-      </ComboBox>
-      <TextBlock Classes="up" Text="Upload speed"></TextBlock>
-      <TextBlock Classes="down" Text="Download speed"></TextBlock>
-    </StackPanel>
-  </Border>
+                >
+        <DataGrid.Columns>
+
+          <DataGridTextColumn Header="DateOfEvent" Binding="{Binding DateOfEvent}" />
+          <DataGridTextColumn Header="Subject" Binding="{Binding Subject}" />
+          <DataGridTextColumn Header="Url" Binding="{Binding ZoomUrl}" />
+          <!-- Add other columns as needed -->
+        </DataGrid.Columns>
+      </DataGrid>
+    </Border>
+  </Grid>
+
+  
 </UserControl>

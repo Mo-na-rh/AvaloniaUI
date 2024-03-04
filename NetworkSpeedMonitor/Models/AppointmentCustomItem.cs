@@ -1,11 +1,17 @@
-﻿namespace NetworkSpeedMonitor.Models
+﻿using System;
+
+namespace NetworkSpeedMonitor.Models
 {
     public class AppointmentCustomItem
     {
-        public string StringDate { get; set; }
+        public string DateOfEvent { get; set; }
 
         public string Subject { get; set; }
 
-        public string Body { get; set; }
+        public string? ZoomUrl { get; set; }
+
+        public DateTime Start { get; set; }
+
+        public DateTime End { get; set; }
     }
 }

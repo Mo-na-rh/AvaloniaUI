@@ -1,93 +1,172 @@
 ﻿using Microsoft.Office.Interop.Outlook;
 using NetworkSpeedMonitor.Models;
-using ReactiveUI;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
-using System.Net.NetworkInformation;
 using Outlook = Microsoft.Office.Interop.Outlook;
 
 namespace NetworkSpeedMonitor.ViewModels;
 
 public class MainViewModel : ViewModelBase
 {
-    private NetworkInterface _currentNetworkType;
 
-    private string _downloadSpeed = "-";
+    public List<AppointmentCustomItem> Appointments { get; set; }
 
-    private string _uploadSpeed = "-";
-
-    public NetworkInterface CurrentNetworkType
-    {
-        get { return _currentNetworkType; }
-        set
-        {
-            this.RaiseAndSetIfChanged(ref _currentNetworkType, value);
-        }
-    }
-    public string DownloadSpeed
-    {
-        get => _downloadSpeed;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref _downloadSpeed, value);
-        }
-    }
-
-    public string UploadSpeed
-    {
-        get => _uploadSpeed;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref _uploadSpeed, value);
-        }
-    }
-
-    public List<NetworkInterface> Networks { get; set; }
+    public ObservableCollection<AppointmentCustomItem> Appointments1 { get; set; }
 
     public MainViewModel()
     {
+        Appointments = new List<AppointmentCustomItem>();
+        InitializeAppointments();
 
-        Networks = NetworkInterface.GetAllNetworkInterfaces()
-            .Where(x => x.OperationalStatus == OperationalStatus.Up)
-            .ToList();
-        CurrentNetworkType = Networks.FirstOrDefault();
-
-        temp();
     }
 
-    public List<AppointmentCustomItem> temp()
+    public void InitializeAppointments()
     {
-        var res = new List<AppointmentCustomItem>();
-        DateTime startDate = new DateTime(2024, 02, 26, 1, 0, 0);
-        DateTime endDate = new DateTime(2024, 02, 27, 0, 0, 0);
+        DateTime startDate = DateTime.Now.Date;
+        DateTime endDate = DateTime.Now.Date.AddDays(1);
 
         Application outlookApp = new Outlook.Application();
-        Outlook.NameSpace outlookNamespace = outlookApp.GetNamespace("MAPI");
-        Outlook.MAPIFolder calendarFolder = outlookNamespace.GetDefaultFolder(Outlook.OlDefaultFolders.olFolderCalendar);
-        var cntr1 = 0;
-        var cntr2 = 0;
-        foreach (object item in calendarFolder.Items)
+        Outlook.Folder? calendarFolder = outlookApp.Session.GetDefaultFolder(
+                                            Outlook.OlDefaultFolders.olFolderCalendar)
+                                            as Outlook.Folder;
+
+        Outlook.Items rangeAppts = GetAppointmentsInRange(calendarFolder, startDate, endDate);
+        if (rangeAppts != null)
         {
-            cntr1++;
-            if (item is Outlook.AppointmentItem)
+            foreach (Outlook.AppointmentItem appointment in rangeAppts)
             {
-                cntr2++;
-                Outlook.AppointmentItem appointment = (Outlook.AppointmentItem)item;
+                var newAppointment = new AppointmentCustomItem();
 
-                //if (appointment.Start >= startDate && appointment.End <= endDate)
+                newAppointment.DateOfEvent = appointment.Start.ToString("HH:mm") + " - " + appointment.End.ToString("HH:mm") + " (" + appointment.Start.ToString("MM/dd/yy") + ")";
+                newAppointment.Subject = appointment.Subject;
+                newAppointment.ZoomUrl = GetZoomMeetingUrlFromAppointment(appointment);
+                newAppointment.Subject = appointment.Subject;
+                newAppointment.Start = appointment.Start;
+                newAppointment.End = appointment.End;
+                Appointments.Add(newAppointment);
+            }
+        }
+
+        Appointments = Appointments.OrderBy(t => t.Start).ToList();
+        Appointments1 = new ObservableCollection<AppointmentCustomItem>(Appointments);
+    }
+
+    static string GetZoomMeetingUrlFromAppointment(Outlook.AppointmentItem appointment)
+    {
+        var res = string.Empty;
+        try
+        {
+            string body = appointment?.Body;
+            string zoomUrlIdentifier = "https://us06web.zoom.us";
+            if (string.IsNullOrEmpty(body))
+                return null;
+            int zoomUrlIndex = body.IndexOf(zoomUrlIdentifier);
+
+            if (zoomUrlIndex != -1)
+            {
+                int endIndex = body.IndexOf(" ", zoomUrlIndex);
+
+                if (endIndex == -1)
                 {
-                    var newAppointment = new AppointmentCustomItem();
-
-                    newAppointment.StringDate = appointment.Start.ToString("HH:mm") + " - " + appointment.End.ToString("HH:mm");
-                    newAppointment.Subject = appointment.Subject;
-                    newAppointment.Body = appointment.Body;
-
-                    res.Add(newAppointment);
-                    //Console.WriteLine($"Subject: {appointment.Subject}, Start: {appointment.Start}, End: {appointment.End}");
+                    res = body.Substring(zoomUrlIndex);
+                }
+                else
+                {
+                    res = body.Substring(zoomUrlIndex, endIndex - zoomUrlIndex);
                 }
             }
         }
+        catch
+        {
+            var tst = 0;
+        }
+
+        if (string.IsNullOrEmpty(res))
+        {
+            string body = appointment?.Body;
+            string zoomUrlIdentifier = "https://us04web.zoom.us";
+            if (string.IsNullOrEmpty(body))
+                return null;
+            int zoomUrlIndex = body.IndexOf(zoomUrlIdentifier);
+
+            if (zoomUrlIndex != -1)
+            {
+                int endIndex = body.IndexOf(" ", zoomUrlIndex);
+
+                if (endIndex == -1)
+                {
+                    res = body.Substring(zoomUrlIndex);
+                }
+                else
+                {
+                    res = body.Substring(zoomUrlIndex, endIndex - zoomUrlIndex);
+                }
+            }
+        }
+
+        if (string.IsNullOrEmpty(res))
+        {
+            string body = appointment?.Body;
+            string zoomUrlIdentifier = "https://call.vk.sminex.com";
+            if (string.IsNullOrEmpty(body))
+                return null;
+            int zoomUrlIndex = body.IndexOf(zoomUrlIdentifier);
+
+            if (zoomUrlIndex != -1)
+            {
+                int endIndex = body.IndexOf(" ", zoomUrlIndex);
+
+                if (endIndex == -1)
+                {
+                    res = body.Substring(zoomUrlIndex);
+                }
+                else
+                {
+                    res = body.Substring(zoomUrlIndex, endIndex - zoomUrlIndex);
+                }
+            }
+        }
+
+
+
+
         return res;
+
+    }
+
+    /// <summary>
+    /// Get recurring appointments in date range.
+    /// </summary>
+    /// <param name="folder"></param>
+    /// <param name="startTime"></param>
+    /// <param name="endTime"></param>
+    /// <returns>Outlook.Items</returns>
+    private Outlook.Items GetAppointmentsInRange(
+        Outlook.Folder folder, DateTime startTime, DateTime endTime)
+    {
+        string filter = "[Start] >= '"
+            + startTime.ToString("g")
+            + "' AND [End] <= '"
+            + endTime.ToString("g") + "'";
+        Debug.WriteLine(filter);
+        try
+        {
+            Outlook.Items calItems = folder.Items;
+            calItems.IncludeRecurrences = true;
+            calItems.Sort("[Start]", Type.Missing);
+            Outlook.Items restrictItems = calItems.Restrict(filter);
+            if (restrictItems.Count > 0)
+            {
+                return restrictItems;
+            }
+            else
+            {
+                return null;
+            }
+        }
+        catch { return null; }
     }
 }
